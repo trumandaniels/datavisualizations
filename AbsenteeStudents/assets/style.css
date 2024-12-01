@@ -1,0 +1,20 @@
+@font-face {
+    font-family: 'Newsreader';
+    src: url('assets/Newsreader-Italic-VariableFont_opsz,wght.ttf') format('truetype');
+}
+
+/* Set the global font family */
+body {
+    font-family: 'Newsreader', sans-serif;
+}
+
+/* Optional: Customize font for specific elements */
+h1 {
+    font-family: 'Newsreader', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+#data-dropdown {
+    font-family: 'Newsreader', sans-serif;
+}

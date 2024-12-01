@@ -16,3 +16,4 @@ This project visualizes student absenteeism data across the United States. The d
 https://absenteestudentsbystate.onrender.com/
 
 ## Screenshot of dashboard
+![US Map](dashboard-screenshot.png)

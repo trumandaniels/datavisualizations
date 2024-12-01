@@ -14,5 +14,7 @@ In this project, I built a machine learning model using the Catboost python libr
 
 ### Project Insights:
 The correlation matrix visualization reveals the relationships between different economic indicators and the budget.
+![Correlation Matrix](FeatureCorrelation.png)
 
 The feature importance plot identifies which factors are the most important for the model to make correct predictions.
+![Feature Importance Plot](FeatureImportance.png)

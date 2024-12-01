@@ -11,6 +11,7 @@ This project visualizes student absenteeism data across the United States. The d
 - **Python**: For data processing and analysis using pandas.
 - **Plotly and Dash**: For creating the interactive map.
 - **Jupyter Notebooks**: For exploratory analysis and documentation.
+- **Render**: For deployment to cloud hosting.
 
 ## The visualization is hosted here:
 https://absenteestudentsbystate.onrender.com/

@@ -4,7 +4,7 @@ Hosted notebook is available [on colab](https://colab.research.google.com/drive/
 
 ## Graph of Cumulative Owed Loans
 
-![Resulting Graph](mesa-loans.png)
+![Resulting Graph](mesa-az-loans.png)
 
 ## Methodology
 The dataset was obtained from the official Mesa Arizona [datahub](https://data.mesaaz.gov/Financial-Services/Debt-Service/p2t3-kgkn/about_data)

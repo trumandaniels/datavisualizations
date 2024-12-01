@@ -53,6 +53,8 @@ def update_map(selected_data):
                         scope="usa")
     fig.update_traces(name="Students", selector=dict(type='choropleth'))
     return fig
+    
+server = app.server
 
 # Run the server
 if __name__ == '__main__':

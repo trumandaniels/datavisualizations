@@ -1,6 +1,6 @@
 # Data Visualization: Mesa Arizona Outstanding Loans
 
-Hosted notebook is available [on colab](https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN#scrollTo=RqrFOJiwgopQ)
+Hosted notebook is available [on colab](https://colab.research.google.com/drive/1iThINxrnoHwjtwq1hIrDGq-pSenZB0yv)
 
 ## Graph of Cumulative Owed Loans
 

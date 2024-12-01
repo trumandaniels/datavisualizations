@@ -1,1 +1,0 @@
-https://edunomicslab.org/nerds/

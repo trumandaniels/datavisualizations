@@ -1,6 +1,6 @@
 # Data Visualization: H-1B Visa Approvals Over Time
 
-Hosted notebook is available [on colab]([https://colab.research.google.com/drive/1iThINxrnoHwjtwq1hIrDGq-pSenZB0yv#scrollTo=igm55CK66RbK](https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN#scrollTo=zVdwXABsadU8))
+Hosted notebook is available [on colab](https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN).
 
 ## Graph of Cumulative Owed Loans
 

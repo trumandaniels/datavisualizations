@@ -5,7 +5,7 @@ import pandas as pd
 from urllib.request import urlopen
 import json
 
-df = pd.read_csv(r"C:\Users\Truman\Documents\datavisualizations\AbsenteeStudents/AbsenteeSpreadsheetClean.csv")
+df = pd.read_csv("AbsenteeSpreadsheetClean.csv")
 # Create a Dash app
 app = dash.Dash(__name__)
 

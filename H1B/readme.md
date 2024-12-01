@@ -1,4 +1,4 @@
-# Data Visualization: H1-B Visa Approvals Over Time
+# Data Visualization: H-1B Visa Approvals Over Time
 
 Hosted notebook is available [on colab]([https://colab.research.google.com/drive/1iThINxrnoHwjtwq1hIrDGq-pSenZB0yv#scrollTo=igm55CK66RbK](https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN#scrollTo=zVdwXABsadU8))
 

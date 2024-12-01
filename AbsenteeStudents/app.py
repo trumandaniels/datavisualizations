@@ -47,7 +47,7 @@ def update_map(selected_data):
                         locations="State Short", 
                         locationmode="USA-states", 
                         color=selected_data, 
-                        color_continuous_scale='redor', 
+                        color_continuous_scale='sunsetdark', 
                         hover_name="State", 
                         labels={selected_data: "Total Students"},
                         scope="usa")

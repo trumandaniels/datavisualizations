@@ -13,7 +13,7 @@ This project visualizes student absenteeism data across the United States. The d
 - **Jupyter Notebooks**: For exploratory analysis and documentation.
 - **Render**: For deployment to cloud hosting.
 
-## The visualization is hosted here:
+## The visualization is hosted here (please be patient, it might take a minute to load because of hosting):
 https://absenteestudentsbystate.onrender.com/
 
 ## Screenshot of dashboard

@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowUpRight, ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import absenteeDashboard from '../AbsenteeStudents/dashboard-screenshot.png';
@@ -27,6 +27,11 @@ type Project = {
   eyebrow: string;
   description: string;
   tags: string[];
+  screenDetails: readonly {
+    label: string;
+    title: string;
+    body: string;
+  }[];
   posterImage: string;
   imageFit: string;
   imageTint: string;
@@ -42,60 +47,144 @@ const projects: readonly Project[] = [
     id: 1,
     title: 'US Student Absenteeism Dashboard',
     eyebrow: 'Education Dashboard',
-    description: 'An interactive state-by-state dashboard for chronic absenteeism and demographic comparisons.',
+    description:
+      'Maps students with 15 or more absences across all 50 states, with switches for race, disability status, English learners, and students per school.',
     tags: ['Dashboard', 'Education', 'Hosted'],
+    screenDetails: [
+      {
+        label: 'Coverage',
+        title: '50-state choropleth with subgroup comparisons built into the screen',
+        body:
+          'The hosted version redraws the map for each selected population, so the geographic pattern can be compared directly instead of inferred from separate charts or tables.',
+      },
+      {
+        label: 'Dataset',
+        title: 'National absenteeism records parsed into state-level metrics',
+        body:
+          'The dashboard is driven by one cleaned spreadsheet with columns for total absentee students, race categories, disability categories, English learners, and students per school.',
+      },
+      {
+        label: 'Output',
+        title: 'Live project page with the interactive map and code behind it',
+        body:
+          'Open the project page to interact with the choropleth directly, switch metrics, and inspect the parsing and Plotly implementation in the repository.',
+      },
+    ],
     posterImage: absenteeDashboard,
     imageFit: 'object-cover object-top',
     imageTint: 'from-sky-500/8 via-transparent to-emerald-500/12',
     href: '/projects/absentee-dashboard',
-    hrefLabel: 'Open Project Page',
+    hrefLabel: 'Open Live Dashboard',
     locationLabel: 'portfolio://absentee-dashboard',
-    statusLabel: 'Hosted On-Site',
+    statusLabel: 'Live Project',
     previewKind: 'absentee',
   },
   {
     id: 2,
     title: 'Los Angeles Budget Forecasting',
     eyebrow: 'Budget Model Storytelling',
-    description: 'Feature-importance storytelling around a city budget prediction model grounded in public finance data.',
+    description:
+      'Forecasts Los Angeles budget movement with CatBoost using public budget history and the Case-Shiller housing index as external context.',
     tags: ['Forecasting', 'Finance', 'Notebook'],
+    screenDetails: [
+      {
+        label: 'Model',
+        title: 'CatBoost forecast trained on public Los Angeles budget history',
+        body:
+          'The notebook keeps the predictive setup visible: historical budget behavior, feature construction, and the forecast itself are all part of the same analytical flow.',
+      },
+      {
+        label: 'Inputs',
+        title: 'Budget records joined with housing-market signals',
+        body:
+          'Adding the Case-Shiller index tests whether outside housing conditions help explain budget movement better than a closed budget-only series.',
+      },
+      {
+        label: 'Output',
+        title: 'Forecast view paired with variable importance',
+        body:
+          'The notebook includes both the prediction and a feature-importance chart, so a reviewer can inspect which inputs carried the most weight.',
+      },
+    ],
     posterImage: budgetFeatureImportance,
     imageFit: 'object-contain',
     imageTint: 'from-amber-500/10 via-transparent to-rose-500/12',
     href: 'https://colab.research.google.com/drive/1iqlMezyD1rOJBr6-OkHf2YEiaGhEilUA',
-    hrefLabel: 'Open Notebook',
+    hrefLabel: 'Open Colab Notebook',
     locationLabel: 'colab://la-budget-forecasting',
-    statusLabel: 'External Notebook',
+    statusLabel: 'Colab Notebook',
     previewKind: 'static',
   },
   {
     id: 3,
     title: 'H-1B Approvals Over Time',
     eyebrow: 'Immigration Trends',
-    description: 'A clean longitudinal trend view built from fifteen USCIS files merged into one portfolio-ready series.',
+    description:
+      'Combines fifteen USCIS employer-data releases into one longitudinal view of H-1B approval volume.',
     tags: ['Time Series', 'Policy', 'Cleaning'],
+    screenDetails: [
+      {
+        label: 'Assembly',
+        title: '15 annual files consolidated into a single approvals series',
+        body:
+          'The project removes the year-by-year break in the source material and makes the full trend readable in one pass.',
+      },
+      {
+        label: 'Cleaning',
+        title: 'Schema differences handled before the timeline is drawn',
+        body:
+          'Field names and yearly structure are normalized first so the final line reflects a comparable series instead of fifteen slightly different file layouts.',
+      },
+      {
+        label: 'Output',
+        title: 'Notebook shows the consolidation step and the finished trend view',
+        body:
+          'Open the notebook to inspect the file unification, the cleaned table shape, and the final approvals chart in sequence.',
+      },
+    ],
     posterImage: h1bApprovals,
     imageFit: 'object-contain',
     imageTint: 'from-blue-500/10 via-transparent to-indigo-500/12',
     href: 'https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN',
-    hrefLabel: 'Open Notebook',
+    hrefLabel: 'Open Colab Notebook',
     locationLabel: 'colab://h1b-approvals',
-    statusLabel: 'External Notebook',
+    statusLabel: 'Colab Notebook',
     previewKind: 'static',
   },
   {
     id: 4,
     title: 'Mesa Outstanding Loans',
     eyebrow: 'Municipal Finance',
-    description: 'A debt-service time series that turns municipal finance data into a clear single-view narrative.',
+    description:
+      'Builds a cumulative view of Mesa debt-service records so outstanding loan obligations remain visible across years.',
     tags: ['Municipal', 'Finance', 'Time Series'],
+    screenDetails: [
+      {
+        label: 'Source',
+        title: 'Mesa debt-service tables reorganized into a running loan series',
+        body:
+          'The notebook starts from city-published debt-service records and reshapes them into a form that can be read across years rather than row by row.',
+      },
+      {
+        label: 'Frame',
+        title: 'Cumulative obligations stay visible throughout the chart',
+        body:
+          'Using a running total makes the buildup of outstanding loans obvious, which is harder to see in isolated annual figures.',
+      },
+      {
+        label: 'Output',
+        title: 'Notebook keeps the transformation path in view',
+        body:
+          'A reviewer can inspect the original records, the cumulative calculation, and the finished municipal-finance chart in the same workflow.',
+      },
+    ],
     posterImage: mesaLoans,
     imageFit: 'object-contain',
     imageTint: 'from-emerald-500/10 via-transparent to-cyan-500/12',
     href: 'https://colab.research.google.com/drive/1iThINxrnoHwjtwq1hIrDGq-pSenZB0yv',
-    hrefLabel: 'Open Notebook',
+    hrefLabel: 'Open Colab Notebook',
     locationLabel: 'colab://mesa-outstanding-loans',
-    statusLabel: 'External Notebook',
+    statusLabel: 'Colab Notebook',
     previewKind: 'static',
   },
 ] as const;
@@ -245,7 +334,7 @@ function ScreenWindowFrame({
           {project.statusLabel}
         </span>
       </div>
-      <div className="min-h-0 flex-1 bg-[#f7f2e8] p-3 sm:p-4">{children}</div>
+      <div className={cn('min-h-0 flex-1 p-3 sm:p-4', project.previewKind === 'static' ? 'bg-white' : 'bg-[#f7f2e8]')}>{children}</div>
     </div>
   );
 }
@@ -262,113 +351,122 @@ function StaticProjectScreen({
   onRequestExpand?: () => void;
 }) {
   const isFullscreen = mode === 'fullscreen';
+  const canToggleSidebar = isFullscreen;
+  const [isSidebarVisible, setIsSidebarVisible] = useState(mode !== 'card');
+
+  useEffect(() => {
+    setIsSidebarVisible(mode !== 'card');
+  }, [mode]);
 
   return (
     <div
       className={cn(
         'grid h-full min-h-0 gap-3',
-        isFullscreen ? 'xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]',
+        isSidebarVisible && (isFullscreen ? 'xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]' : 'xl:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'),
       )}
     >
-      <div
-        className={cn(
-          'space-y-4 rounded-[1.7rem] border border-neutral-900/8 bg-white/82',
-          isFullscreen ? 'p-6 shadow-[0_20px_50px_-34px_rgba(15,23,42,0.24)]' : 'p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.2)]',
-        )}
-      >
-        <div className="space-y-3">
-          <p className={cn('font-semibold uppercase tracking-[0.28em] text-neutral-500', isFullscreen ? 'text-xs' : 'text-[10px]')}>
-            {project.eyebrow}
-          </p>
-          <h2
-            className={cn(
-              'font-semibold leading-[0.92] tracking-[-0.05em] text-neutral-950',
-              isFullscreen ? 'text-[2.75rem]' : 'text-[clamp(1.8rem,2.8vw,3rem)]',
-            )}
-          >
-            {project.title}
-          </h2>
-          <p className={cn('text-neutral-600', isFullscreen ? 'text-base leading-7' : 'text-sm leading-6')}>
-            {project.description}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-neutral-900/8 bg-[#fff8ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-600"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[1.4rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Preview</p>
-            <p className={cn('mt-2 font-semibold tracking-[-0.05em] text-neutral-950', isFullscreen ? 'text-4xl' : 'text-[1.8rem]')}>
-              Screen
-            </p>
-            <p className="mt-2 text-sm leading-6 text-neutral-600">A framed mini-site presentation instead of a bare exported chart image.</p>
-          </div>
-          <div className="rounded-[1.4rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Action</p>
-            <p className={cn('mt-2 font-semibold tracking-[-0.05em] text-neutral-950', isFullscreen ? 'text-4xl' : 'text-[1.8rem]')}>
-              Double Click
-            </p>
-            <p className="mt-2 text-sm leading-6 text-neutral-600">Expand the active screen to inspect the full visualization before jumping to the notebook.</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800"
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenProject();
-          }}
+      {isSidebarVisible && (
+        <div
+          className={cn(
+            'rounded-[1.7rem] border border-neutral-900/8 bg-white/82',
+            isFullscreen
+              ? 'overflow-y-auto p-6 shadow-[0_20px_50px_-34px_rgba(15,23,42,0.24)]'
+              : 'overflow-y-auto p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.2)]',
+          )}
         >
-          {project.hrefLabel}
-          <ArrowUpRight className="h-4 w-4" />
-        </button>
-      </div>
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <p className={cn('font-semibold uppercase tracking-[0.28em] text-neutral-500', isFullscreen ? 'text-xs' : 'text-[10px]')}>
+                {project.eyebrow}
+              </p>
+              <h2
+                className={cn(
+                  'font-semibold leading-[0.92] tracking-[-0.05em] text-neutral-950',
+                  isFullscreen ? 'text-[2.75rem]' : 'text-[clamp(1.75rem,3.2vw,3rem)]',
+                )}
+              >
+                {project.title}
+              </h2>
+              <p className={cn('text-neutral-600', isFullscreen ? 'text-base leading-7' : 'text-[15px] leading-7')}>
+                {project.description}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-neutral-900/8 bg-[#fff8ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-600"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="grid gap-3">
+              {project.screenDetails.map((detail) => (
+                <div key={detail.title} className={cn('rounded-[1.45rem] border border-neutral-900/8 bg-[#fffaf3]', isFullscreen ? 'p-5' : 'p-4')}>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">{detail.label}</p>
+                  <p
+                    className={cn(
+                      'mt-2 font-semibold tracking-[-0.04em] text-neutral-950',
+                      isFullscreen ? 'text-[1.55rem] leading-[1.05]' : 'text-[1.35rem] leading-[1.08]',
+                    )}
+                  >
+                    {detail.title}
+                  </p>
+                  <p className={cn('mt-3 text-neutral-600', isFullscreen ? 'text-[15px] leading-7' : 'text-sm leading-6')}>
+                    {detail.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenProject();
+              }}
+            >
+              {project.hrefLabel}
+              <ArrowUpRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <section className="relative min-h-0">
         <div className="rounded-[1.9rem] border border-neutral-900/8 bg-white/88 p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.24)]">
           <div className="mb-3 flex items-center justify-between gap-4 px-1">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Visualization Preview</p>
-              <h3 className={cn('font-semibold tracking-[-0.03em] text-neutral-950', isFullscreen ? 'text-xl' : 'text-base')}>
-                Full figure inside a project screen
-              </h3>
             </div>
-            {onRequestExpand && (
+            {canToggleSidebar && (
               <button
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  onRequestExpand();
+                  setIsSidebarVisible((current) => !current);
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-500 hover:text-neutral-950"
+                className="inline-flex items-center rounded-full border border-neutral-900/10 bg-[#fffaf3] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600 transition hover:border-neutral-900/25 hover:text-neutral-950"
               >
-                <Expand className="h-4 w-4" />
-                Expand
+                {isSidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
               </button>
             )}
           </div>
 
           <div
             className={cn(
-              'relative overflow-hidden rounded-[1.65rem] bg-[linear-gradient(180deg,#fffdf9_0%,#f8f2e8_100%)] p-4 ring-1 ring-neutral-900/6',
+              'relative overflow-hidden rounded-[1.65rem] bg-white p-4 ring-1 ring-neutral-900/6',
               isFullscreen ? 'h-[calc(100vh-16rem)] min-h-[30rem]' : 'h-full min-h-[21rem]',
             )}
           >
-            <div className={cn('absolute inset-0 bg-gradient-to-br', project.imageTint)} />
             <img
               src={project.posterImage}
               alt={project.title}
-              className={cn('relative z-10 h-full w-full rounded-[1.1rem] bg-[#fffaf2]', project.imageFit)}
+              className={cn('relative z-10 h-full w-full rounded-[1.1rem] bg-white', project.imageFit)}
               draggable={false}
             />
           </div>
@@ -684,8 +782,8 @@ export function Jukebox() {
                     </motion.div>
                   </div>
 
-                  <div className="absolute left-7 top-7 z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/58 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-700 shadow-[0_18px_34px_-20px_rgba(15,23,42,0.5)] backdrop-blur-[26px] supports-[backdrop-filter]:bg-white/34">
-                    {isSelected ? 'Double Click to Expand' : 'Mini Project Screen'}
+                  <div className="absolute left-7 top-7 z-20 inline-flex items-center rounded-full border border-neutral-900/8 bg-[#fffaf3] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-600 shadow-[0_18px_34px_-20px_rgba(15,23,42,0.18)]">
+                    {isSelected ? 'Open Fullscreen' : 'Project Preview'}
                   </div>
 
                   {isSelected && (

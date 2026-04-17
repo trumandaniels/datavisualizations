@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Expand } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import absenteeCsv from '../AbsenteeStudents/AbsenteeSpreadsheetClean.csv?raw';
 
@@ -44,6 +43,8 @@ type AbsenteeDashboardScreenProps = {
 
 const REQUIRED_COLUMNS = ['State', 'State Short', ...METRIC_OPTIONS.map((option) => option.value)] as const;
 const CHART_GEO_BACKGROUND_COLOR = '#f8f2e8';
+const COLORBAR_TITLE = 'Students';
+const ABSENTEE_GITHUB_URL = 'https://github.com/trumandaniels/datavisualizations/tree/main/AbsenteeStudents';
 
 function parseNumberCell(value: string, rowIndex: number, column: string) {
   const parsed = Number(value);
@@ -99,11 +100,11 @@ function getLayoutClasses(layout: ScreenLayout) {
       eyebrow: 'text-[10px] font-semibold uppercase tracking-[0.32em] text-neutral-500',
       title: 'text-[clamp(2rem,3.1vw,3.5rem)] font-semibold leading-[0.9] tracking-[-0.055em] text-neutral-950',
       description: 'text-sm leading-6 text-neutral-600',
-      cardGrid: 'grid gap-3 sm:grid-cols-2 lg:grid-cols-1',
+      summaryPanel: 'rounded-[1.5rem] border border-neutral-900/8 bg-[#fffaf3] p-4',
       statTitle: 'text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500',
       statValue: 'mt-2 text-[1.85rem] font-semibold tracking-[-0.05em] text-neutral-950',
       statBody: 'mt-2 text-sm leading-6 text-neutral-600',
-      chartHeader: 'mb-3 flex items-center justify-between gap-4 px-1',
+      chartHeader: 'mb-3 flex flex-wrap items-center justify-between gap-3 px-1',
       chartTitle: 'text-base font-semibold tracking-[-0.03em] text-neutral-950',
       chartHeight: 'h-full min-h-[21rem] w-full',
       chartSurface: 'flex h-full min-h-0 flex-col rounded-[1.65rem] bg-[linear-gradient(180deg,#fffdf9_0%,#f8f2e8_100%)] p-3 ring-1 ring-neutral-900/6',
@@ -112,16 +113,17 @@ function getLayoutClasses(layout: ScreenLayout) {
 
   if (layout === 'fullscreen') {
     return {
-      grid: 'grid h-full min-h-0 gap-6 xl:grid-cols-[minmax(0,23rem)_minmax(0,1fr)]',
+      grid:
+        'grid h-full min-h-0 gap-6 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable] xl:grid-cols-[minmax(0,23rem)_minmax(0,1fr)]',
       panel: 'space-y-5 rounded-[2rem] border border-neutral-900/8 bg-white/82 p-6 shadow-[0_24px_70px_-38px_rgba(15,23,42,0.28)] backdrop-blur-sm',
       eyebrow: 'text-xs font-semibold uppercase tracking-[0.28em] text-neutral-500',
       title: 'text-5xl font-semibold leading-none tracking-[-0.05em] text-neutral-950',
       description: 'text-base leading-7 text-neutral-600',
-      cardGrid: 'grid gap-3 sm:grid-cols-2',
+      summaryPanel: 'rounded-[1.6rem] border border-neutral-900/8 bg-[#fffaf3] p-5',
       statTitle: 'text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500',
       statValue: 'mt-2 text-4xl font-semibold tracking-[-0.04em] text-neutral-950',
       statBody: 'mt-2 text-sm leading-6 text-neutral-600',
-      chartHeader: 'mb-4 flex items-center justify-between gap-4 px-2',
+      chartHeader: 'mb-4 flex flex-wrap items-center justify-between gap-3 px-2',
       chartTitle: 'text-xl font-semibold tracking-[-0.03em] text-neutral-950',
       chartHeight: 'h-[calc(100vh-14rem)] min-h-[32rem] w-full',
       chartSurface: 'rounded-[1.85rem] bg-[linear-gradient(180deg,#fffdf9_0%,#f8f2e8_100%)] p-4 ring-1 ring-neutral-900/6 sm:p-5',
@@ -134,7 +136,7 @@ function getLayoutClasses(layout: ScreenLayout) {
     eyebrow: 'text-xs font-semibold uppercase tracking-[0.28em] text-neutral-500',
     title: 'text-4xl font-semibold leading-none tracking-[-0.04em] text-neutral-950 sm:text-5xl',
     description: 'text-sm leading-6 text-neutral-600 sm:text-base',
-    cardGrid: 'grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2',
+    summaryPanel: 'rounded-[1.6rem] border border-neutral-900/8 bg-[#fffaf3] p-5',
     statTitle: 'text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500',
     statValue: 'mt-2 text-3xl font-semibold tracking-[-0.04em] text-neutral-950',
     statBody: 'mt-2 text-sm leading-6 text-neutral-600',
@@ -152,12 +154,18 @@ export function AbsenteeDashboardScreen({
   onRequestExpand,
 }: AbsenteeDashboardScreenProps) {
   const plotRef = useRef<HTMLDivElement | null>(null);
+  const sidebarCanCollapse = layout !== 'page';
+  const [isSidebarVisible, setIsSidebarVisible] = useState(layout !== 'card');
   const selectedOption = useMemo(
     () => METRIC_OPTIONS.find((option) => option.value === selectedMetric) ?? METRIC_OPTIONS[0],
     [selectedMetric],
   );
   const classes = getLayoutClasses(layout);
   const showExpandButton = typeof onRequestExpand === 'function';
+
+  useEffect(() => {
+    setIsSidebarVisible(layout !== 'card');
+  }, [layout]);
 
   useEffect(() => {
     const graphDiv = plotRef.current as PlotlyDiv | null;
@@ -184,7 +192,7 @@ export function AbsenteeDashboardScreen({
           },
         },
         colorbar: {
-          title: selectedOption.label,
+          title: COLORBAR_TITLE,
           tickfont: { color: '#3d342b', size: 12 },
           titlefont: { color: '#3d342b', size: 12 },
         },
@@ -232,7 +240,7 @@ export function AbsenteeDashboardScreen({
       graphDiv.removeAllListeners?.('plotly_doubleclick');
       Plotly.purge(graphDiv);
     };
-  }, [onRequestExpand, selectedMetric, selectedOption.label, showExpandButton]);
+  }, [onRequestExpand, selectedMetric, showExpandButton]);
 
   useEffect(() => {
     const graphDiv = plotRef.current as PlotlyDiv | null;
@@ -250,69 +258,79 @@ export function AbsenteeDashboardScreen({
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [layout]);
+  }, [layout, isSidebarVisible]);
 
   return (
-    <section className={classes.grid}>
-      <div className={classes.panel}>
-        <div className="space-y-3">
-          <p className={classes.eyebrow}>Education Dashboard</p>
-          <h1 className={classes.title}>US Student Absenteeism</h1>
-          <p className={classes.description}>
-            A state-by-state choropleth for students with 15 or more absences in a school year. Filter the map by demographic segment, then double-click the chart to open a full-screen demo inside the site.
-          </p>
-        </div>
-
-        <div className="rounded-[1.5rem] border border-neutral-900/8 bg-[#fbf7f1] p-4">
-          <label
-            htmlFor={`absentee-metric-${layout}`}
-            className="mb-2 block text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500"
-          >
-            Filter Metric
-          </label>
-          <select
-            id={`absentee-metric-${layout}`}
-            value={selectedMetric}
-            onChange={(event) => onSelectedMetricChange(event.target.value as MetricKey)}
-            className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-800 outline-none transition focus:border-neutral-500"
-          >
-            {METRIC_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={classes.cardGrid}>
-          <div className="rounded-[1.5rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
-            <p className={classes.statTitle}>Coverage</p>
-            <p className={classes.statValue}>50 States</p>
-            <p className={classes.statBody}>The dashboard maps every state-level record included in the absentee dataset.</p>
+    <section className={sidebarCanCollapse && !isSidebarVisible ? 'grid h-full min-h-0' : classes.grid}>
+      {isSidebarVisible && (
+        <div className={classes.panel}>
+          <div className="space-y-3">
+            <p className={classes.eyebrow}>Education Dashboard</p>
+            <h1 className={classes.title}>US Student Absenteeism</h1>
+            <p className={classes.description}>
+              State-by-state choropleth of students with 15 or more absences, with filters for race, disability
+              status, English learners, and students per school.
+            </p>
           </div>
-          <div className="rounded-[1.5rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
-            <p className={classes.statTitle}>Interaction</p>
-            <p className={classes.statValue}>Double Click</p>
-            <p className={classes.statBody}>Open the chart as a full-screen demo, then use the small `x` or `Esc` to minimize it.</p>
+
+          <div className="rounded-[1.5rem] border border-neutral-900/8 bg-[#fbf7f1] p-4">
+            <label
+              htmlFor={`absentee-metric-${layout}`}
+              className="mb-2 block text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500"
+            >
+              Metric
+            </label>
+            <select
+              id={`absentee-metric-${layout}`}
+              value={selectedMetric}
+              onChange={(event) => onSelectedMetricChange(event.target.value as MetricKey)}
+              className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-800 outline-none transition focus:border-neutral-500"
+            >
+              {METRIC_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={classes.summaryPanel}>
+            <p className={classes.statTitle}>In This Screen</p>
+            <p className={classes.statValue}>50-state choropleth with subgroup switches and per-school context</p>
+            <p className={classes.statBody}>
+              Each selection redraws the national map from the same cleaned dataset, so the reviewer can compare total
+              absentee counts against subgroup-specific patterns without leaving the screen. The repository includes
+              the source CSV, parsing logic, and Plotly implementation used here.
+            </p>
+            <a
+              href={ABSENTEE_GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center rounded-full border border-neutral-900/10 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-900/25 hover:text-neutral-950"
+            >
+              View Code on GitHub
+            </a>
           </div>
         </div>
-      </div>
+      )}
 
       <section className="relative min-h-0">
         <div className="rounded-[2rem] border border-neutral-900/8 bg-white/88 p-4 shadow-[0_28px_90px_-44px_rgba(15,23,42,0.35)] backdrop-blur-sm sm:p-5">
           <div className={classes.chartHeader}>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Interactive Demo</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Live Project</p>
               <h2 className={classes.chartTitle}>{selectedOption.label}</h2>
             </div>
-            {showExpandButton && (
+            {sidebarCanCollapse && (
               <button
                 type="button"
-                onClick={onRequestExpand}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-500 hover:text-neutral-950"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsSidebarVisible((current) => !current);
+                }}
+                className="inline-flex items-center rounded-full border border-neutral-900/10 bg-[#fffaf3] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600 transition hover:border-neutral-900/25 hover:text-neutral-950"
               >
-                <Expand className="h-4 w-4" />
-                Expand
+                {isSidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
               </button>
             )}
           </div>

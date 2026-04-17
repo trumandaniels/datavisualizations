@@ -31,7 +31,7 @@ export function AbsenteeDashboardPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f7f2ea] text-neutral-900 selection:bg-amber-100">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#f7f2ea] text-neutral-900 selection:bg-amber-100">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{

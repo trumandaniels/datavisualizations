@@ -5,59 +5,98 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react';
-import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { ArrowUpRight, ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import absenteeDashboard from '../AbsenteeStudents/dashboard-screenshot.png';
 import budgetFeatureImportance from '../Budgets/FeatureImportance.png';
 import h1bApprovals from '../H1B/h-1b_approvals.png';
 import mesaLoans from '../mesaloans/mesa-az-loans.png';
+import { AbsenteeDashboardScreen, type MetricKey } from './AbsenteeDashboardScreen';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const projects = [
+type Project = {
+  id: number;
+  title: string;
+  eyebrow: string;
+  description: string;
+  tags: string[];
+  posterImage: string;
+  imageFit: string;
+  imageTint: string;
+  href: string;
+  hrefLabel: string;
+  locationLabel: string;
+  statusLabel: string;
+  previewKind: 'absentee' | 'static';
+};
+
+const projects: readonly Project[] = [
   {
     id: 1,
     title: 'US Student Absenteeism Dashboard',
+    eyebrow: 'Education Dashboard',
     description: 'An interactive state-by-state dashboard for chronic absenteeism and demographic comparisons.',
-    tags: ['Dashboard', 'Education', 'Dash'],
-    image: absenteeDashboard,
+    tags: ['Dashboard', 'Education', 'Hosted'],
+    posterImage: absenteeDashboard,
     imageFit: 'object-cover object-top',
     imageTint: 'from-sky-500/8 via-transparent to-emerald-500/12',
-    href: 'https://absenteestudentsbystate.onrender.com/',
+    href: '/projects/absentee-dashboard',
+    hrefLabel: 'Open Project Page',
+    locationLabel: 'portfolio://absentee-dashboard',
+    statusLabel: 'Hosted On-Site',
+    previewKind: 'absentee',
   },
   {
     id: 2,
     title: 'Los Angeles Budget Forecasting',
+    eyebrow: 'Budget Model Storytelling',
     description: 'Feature-importance storytelling around a city budget prediction model grounded in public finance data.',
-    tags: ['Forecasting', 'Finance', 'Model'],
-    image: budgetFeatureImportance,
+    tags: ['Forecasting', 'Finance', 'Notebook'],
+    posterImage: budgetFeatureImportance,
     imageFit: 'object-contain',
     imageTint: 'from-amber-500/10 via-transparent to-rose-500/12',
     href: 'https://colab.research.google.com/drive/1iqlMezyD1rOJBr6-OkHf2YEiaGhEilUA',
+    hrefLabel: 'Open Notebook',
+    locationLabel: 'colab://la-budget-forecasting',
+    statusLabel: 'External Notebook',
+    previewKind: 'static',
   },
   {
     id: 3,
     title: 'H-1B Approvals Over Time',
+    eyebrow: 'Immigration Trends',
     description: 'A clean longitudinal trend view built from fifteen USCIS files merged into one portfolio-ready series.',
     tags: ['Time Series', 'Policy', 'Cleaning'],
-    image: h1bApprovals,
+    posterImage: h1bApprovals,
     imageFit: 'object-contain',
     imageTint: 'from-blue-500/10 via-transparent to-indigo-500/12',
     href: 'https://colab.research.google.com/drive/1Rz_YG0UtCvS_deUtcmjkV_lxchUd48pN',
+    hrefLabel: 'Open Notebook',
+    locationLabel: 'colab://h1b-approvals',
+    statusLabel: 'External Notebook',
+    previewKind: 'static',
   },
   {
     id: 4,
     title: 'Mesa Outstanding Loans',
+    eyebrow: 'Municipal Finance',
     description: 'A debt-service time series that turns municipal finance data into a clear single-view narrative.',
     tags: ['Municipal', 'Finance', 'Time Series'],
-    image: mesaLoans,
+    posterImage: mesaLoans,
     imageFit: 'object-contain',
     imageTint: 'from-emerald-500/10 via-transparent to-cyan-500/12',
     href: 'https://colab.research.google.com/drive/1iThINxrnoHwjtwq1hIrDGq-pSenZB0yv',
+    hrefLabel: 'Open Notebook',
+    locationLabel: 'colab://mesa-outstanding-loans',
+    statusLabel: 'External Notebook',
+    previewKind: 'static',
   },
 ] as const;
 
@@ -67,7 +106,6 @@ type CardLayout = {
   rotateY: number;
   scale: number;
   absOffset: number;
-  isSelected: boolean;
 };
 
 type CardExamineState = {
@@ -79,6 +117,8 @@ type CardExamineState = {
   translateZ: number;
   scale: number;
 };
+
+type ScreenMode = 'card' | 'fullscreen';
 
 const MAX_EXAMINE_ROTATION = 8;
 const MAX_EXAMINE_SWIPE = 120;
@@ -101,6 +141,12 @@ const REFLECTION_SPRING = {
   stiffness: 300,
   damping: 26,
   mass: 0.74,
+};
+const WINDOW_PORTAL_SPRING = {
+  type: 'spring' as const,
+  stiffness: 220,
+  damping: 26,
+  mass: 0.86,
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -135,7 +181,7 @@ function getCardLayout(index: number, activeIndex: number, hoveredIndex: number 
     z = 72;
   }
 
-  return { x, z, rotateY, scale, absOffset, isSelected };
+  return { x, z, rotateY, scale, absOffset };
 }
 
 function getCardExamineState(
@@ -171,16 +217,189 @@ function getAdjacentIndexFromClick(clickX: number, containerWidth: number, activ
   return relativeX < 0 ? Math.max(0, activeIndex - 1) : Math.min(projects.length - 1, activeIndex + 1);
 }
 
+function ScreenWindowFrame({
+  project,
+  mode,
+  children,
+}: {
+  project: Project;
+  mode: ScreenMode;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex h-full min-h-0 flex-col overflow-hidden bg-white/98 ring-1 ring-neutral-900/8',
+        mode === 'fullscreen'
+          ? 'rounded-[2rem] shadow-[0_32px_110px_-52px_rgba(15,23,42,0.38)]'
+          : 'rounded-[1.65rem] shadow-[0_24px_72px_-40px_rgba(15,23,42,0.28)]',
+      )}
+    >
+      <div className="flex items-center gap-3 border-b border-neutral-900/8 bg-[#fcfaf6]/95 px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff8679]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#f6c152]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#66c374]" />
+        </div>
+        <span className="rounded-full border border-neutral-900/8 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">
+          {project.statusLabel}
+        </span>
+        <span className="min-w-0 flex-1 truncate rounded-full border border-neutral-900/8 bg-white/90 px-4 py-1.5 text-xs text-neutral-500">
+          {project.locationLabel}
+        </span>
+      </div>
+      <div className="min-h-0 flex-1 bg-[linear-gradient(180deg,#fdfaf4_0%,#f7f2e8_100%)] p-3 sm:p-4">{children}</div>
+    </div>
+  );
+}
+
+function StaticProjectScreen({
+  project,
+  mode,
+  onOpenProject,
+  onRequestExpand,
+}: {
+  project: Project;
+  mode: ScreenMode;
+  onOpenProject: () => void;
+  onRequestExpand?: () => void;
+}) {
+  const isFullscreen = mode === 'fullscreen';
+
+  return (
+    <div
+      className={cn(
+        'grid h-full min-h-0 gap-3',
+        isFullscreen ? 'xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]',
+      )}
+    >
+      <div
+        className={cn(
+          'space-y-4 rounded-[1.7rem] border border-neutral-900/8 bg-white/82',
+          isFullscreen ? 'p-6 shadow-[0_20px_50px_-34px_rgba(15,23,42,0.24)]' : 'p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.2)]',
+        )}
+      >
+        <div className="space-y-3">
+          <p className={cn('font-semibold uppercase tracking-[0.28em] text-neutral-500', isFullscreen ? 'text-xs' : 'text-[10px]')}>
+            {project.eyebrow}
+          </p>
+          <h2
+            className={cn(
+              'font-semibold leading-[0.92] tracking-[-0.05em] text-neutral-950',
+              isFullscreen ? 'text-[2.75rem]' : 'text-[clamp(1.8rem,2.8vw,3rem)]',
+            )}
+          >
+            {project.title}
+          </h2>
+          <p className={cn('text-neutral-600', isFullscreen ? 'text-base leading-7' : 'text-sm leading-6')}>
+            {project.description}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {project.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-neutral-900/8 bg-[#fff8ee] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-600"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[1.4rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Preview</p>
+            <p className={cn('mt-2 font-semibold tracking-[-0.05em] text-neutral-950', isFullscreen ? 'text-4xl' : 'text-[1.8rem]')}>
+              Screen
+            </p>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">A framed mini-site presentation instead of a bare exported chart image.</p>
+          </div>
+          <div className="rounded-[1.4rem] border border-neutral-900/8 bg-[#fffaf3] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Action</p>
+            <p className={cn('mt-2 font-semibold tracking-[-0.05em] text-neutral-950', isFullscreen ? 'text-4xl' : 'text-[1.8rem]')}>
+              Double Click
+            </p>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">Expand the active screen to inspect the full visualization before jumping to the notebook.</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenProject();
+          }}
+        >
+          {project.hrefLabel}
+          <ArrowUpRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <section className="relative min-h-0">
+        <div className="rounded-[1.9rem] border border-neutral-900/8 bg-white/88 p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.24)]">
+          <div className="mb-3 flex items-center justify-between gap-4 px-1">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Visualization Preview</p>
+              <h3 className={cn('font-semibold tracking-[-0.03em] text-neutral-950', isFullscreen ? 'text-xl' : 'text-base')}>
+                Full figure inside a project screen
+              </h3>
+            </div>
+            {onRequestExpand && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRequestExpand();
+                }}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-500 hover:text-neutral-950"
+              >
+                <Expand className="h-4 w-4" />
+                Expand
+              </button>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              'relative overflow-hidden rounded-[1.65rem] bg-[linear-gradient(180deg,#fffdf9_0%,#f8f2e8_100%)] p-4 ring-1 ring-neutral-900/6',
+              isFullscreen ? 'h-[calc(100vh-16rem)] min-h-[30rem]' : 'h-full min-h-[21rem]',
+            )}
+          >
+            <div className={cn('absolute inset-0 bg-gradient-to-br', project.imageTint)} />
+            <img
+              src={project.posterImage}
+              alt={project.title}
+              className={cn('relative z-10 h-full w-full rounded-[1.1rem] bg-[#fffaf2]', project.imageFit)}
+              draggable={false}
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function Jukebox() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [examinedCard, setExaminedCard] = useState<CardExamineState | null>(null);
   const [isExamining, setIsExamining] = useState(false);
+  const [expandedProjectIndex, setExpandedProjectIndex] = useState<number | null>(null);
+  const [absenteeMetric, setAbsenteeMetric] = useState<MetricKey>('Total Students');
   const containerRef = useRef<HTMLDivElement>(null);
   const wheelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
+
+  const expandedProject = expandedProjectIndex === null ? null : projects[expandedProjectIndex];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (expandedProjectIndex !== null) {
+        return;
+      }
+
       if (event.key === 'ArrowLeft') {
         setActiveIndex((previous) => Math.max(0, previous - 1));
       } else if (event.key === 'ArrowRight') {
@@ -190,6 +409,17 @@ export function Jukebox() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedProjectIndex]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setExpandedProjectIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
   useEffect(() => {
@@ -199,6 +429,10 @@ export function Jukebox() {
     }
 
     const handleWheel = (event: WheelEvent) => {
+      if (expandedProjectIndex !== null) {
+        return;
+      }
+
       event.preventDefault();
 
       if (wheelTimeout.current) {
@@ -226,7 +460,19 @@ export function Jukebox() {
         clearTimeout(wheelTimeout.current);
       }
     };
-  }, []);
+  }, [expandedProjectIndex]);
+
+  useEffect(() => {
+    if (expandedProjectIndex !== null) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [expandedProjectIndex]);
 
   const handleNext = () => {
     setActiveIndex((previous) => Math.min(projects.length - 1, previous + 1));
@@ -260,7 +506,40 @@ export function Jukebox() {
   };
 
   const openProject = (index: number) => {
-    window.open(projects[index].href, '_blank', 'noopener,noreferrer');
+    const project = projects[index];
+
+    if (project.href.startsWith('/')) {
+      navigate(project.href);
+      return;
+    }
+
+    window.open(project.href, '_blank', 'noopener,noreferrer');
+  };
+
+  const openExpandedPreview = (index: number) => {
+    setExpandedProjectIndex(index);
+  };
+
+  const renderProjectScreen = (project: Project, index: number, mode: ScreenMode, allowExpand = true) => {
+    if (project.previewKind === 'absentee') {
+      return (
+        <AbsenteeDashboardScreen
+          layout={mode === 'fullscreen' ? 'fullscreen' : 'card'}
+          selectedMetric={absenteeMetric}
+          onSelectedMetricChange={setAbsenteeMetric}
+          onRequestExpand={allowExpand ? () => openExpandedPreview(index) : undefined}
+        />
+      );
+    }
+
+    return (
+      <StaticProjectScreen
+        project={project}
+        mode={mode}
+        onOpenProject={() => openProject(index)}
+        onRequestExpand={allowExpand ? () => openExpandedPreview(index) : undefined}
+      />
+    );
   };
 
   return (
@@ -323,8 +602,8 @@ export function Jukebox() {
                   className={cn(
                     'relative overflow-hidden rounded-[28px] bg-white/96 transition-all duration-300',
                     isSelected
-                      ? 'h-[min(62vw,640px)] w-[min(88vw,1040px)] shadow-[0_30px_72px_-34px_rgba(15,23,42,0.34)] ring-1 ring-neutral-900/8'
-                      : 'h-[min(44vw,440px)] w-[min(58vw,720px)] shadow-[0_20px_44px_-28px_rgba(15,23,42,0.22)] ring-1 ring-neutral-900/8',
+                      ? 'h-[min(66vw,720px)] w-[min(92vw,1160px)] shadow-[0_30px_72px_-34px_rgba(15,23,42,0.34)] ring-1 ring-neutral-900/8'
+                      : 'h-[min(48vw,520px)] w-[min(66vw,820px)] shadow-[0_20px_44px_-28px_rgba(15,23,42,0.22)] ring-1 ring-neutral-900/8',
                   )}
                   initial={false}
                   animate={{
@@ -371,7 +650,7 @@ export function Jukebox() {
                     }
 
                     event.stopPropagation();
-                    openProject(index);
+                    openExpandedPreview(index);
                   }}
                   onPointerUp={(event) => {
                     if (event.button !== 0) {
@@ -387,88 +666,48 @@ export function Jukebox() {
                   onPointerCancel={releaseExaminedCard}
                   onLostPointerCapture={releaseExaminedCard}
                 >
-                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/52 via-white/14 to-neutral-900/6" />
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/44 via-white/8 to-neutral-900/4" />
                   <div className="pointer-events-none absolute inset-x-[10%] top-0 z-10 h-px bg-white/80 blur-[1px]" />
                   <div className={cn('pointer-events-none absolute inset-0 z-10 bg-gradient-to-br', project.imageTint)} />
 
-                  <div className="absolute inset-[16px] overflow-hidden rounded-[22px] bg-[#f6f1e8] ring-1 ring-neutral-900/6">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className={cn('relative z-0 h-full w-full select-none bg-[#f8f6f1] object-center', project.imageFit)}
-                      draggable={false}
-                      loading={index === activeIndex ? 'eager' : 'lazy'}
-                      decoding="async"
-                      style={{
-                        backfaceVisibility: 'hidden',
-                        WebkitBackfaceVisibility: 'hidden',
-                        transform: 'translateZ(0)',
-                      }}
-                    />
+                  <div
+                    className={cn(
+                      'absolute inset-[14px] z-0 transition-opacity duration-150',
+                      expandedProjectIndex === index ? 'opacity-0' : 'opacity-100',
+                    )}
+                  >
+                    <motion.div
+                      layoutId={`project-window-${project.id}`}
+                      className="h-full"
+                      transition={WINDOW_PORTAL_SPRING}
+                    >
+                      <ScreenWindowFrame project={project} mode="card">
+                        {renderProjectScreen(project, index, 'card')}
+                      </ScreenWindowFrame>
+                    </motion.div>
                   </div>
 
-                  <div className="absolute left-7 top-7 z-20 inline-flex items-center gap-2 rounded-full border border-white/65 bg-white/82 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-700 shadow-sm backdrop-blur-sm">
-                    Featured Project
+                  <div className="absolute left-7 top-7 z-20 inline-flex items-center gap-2 rounded-full border border-white/65 bg-white/84 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-700 shadow-sm backdrop-blur-sm">
+                    {isSelected ? 'Double Click to Expand' : 'Mini Project Screen'}
                   </div>
 
                   {!isSelected && (
                     <div
                       className={cn(
-                        'absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#09101d]/84 via-[#09101d]/40 to-transparent p-6 transition-opacity duration-300',
+                        'pointer-events-none absolute inset-x-5 bottom-5 z-20 rounded-[1.2rem] border border-white/50 bg-white/86 px-4 py-3 text-neutral-900 shadow-lg backdrop-blur-sm transition-opacity duration-300',
                         isHovered ? 'opacity-100' : 'opacity-0',
                       )}
                     >
-                      <h4 className="max-w-xs text-xl font-semibold tracking-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.28)]">
-                        {project.title}
-                      </h4>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">{project.eyebrow}</p>
+                      <h4 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-neutral-950">{project.title}</h4>
                     </div>
                   )}
-
-                  <AnimatePresence>
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 14 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, transition: { duration: 0.08 } }}
-                        transition={{ delay: 0.08, duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-                        className="absolute inset-x-0 bottom-0 z-20 flex h-[48%] flex-col justify-end bg-gradient-to-t from-[#09101d]/92 via-[#09101d]/48 to-transparent p-8 text-white"
-                      >
-                        <div className="mb-3 flex items-center gap-2">
-                          {project.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full border border-white/20 bg-white/16 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/92 backdrop-blur-sm"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <h3 className="mb-2 max-w-xl text-[clamp(2rem,2.8vw,3.2rem)] font-semibold leading-[0.95] tracking-[-0.04em]">
-                          {project.title}
-                        </h3>
-                        <p className="mb-5 max-w-xl text-sm font-medium leading-6 text-white/78">
-                          {project.description}
-                        </p>
-
-                        <a
-                          className="group inline-flex w-fit items-center gap-2 self-start rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg transition-colors hover:bg-neutral-100"
-                          href={project.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          Open Project
-                          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                        </a>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </motion.div>
 
                 <motion.div
                   className={cn(
-                    "pointer-events-none absolute left-1/2 top-[calc(100%+12px)] -translate-x-1/2 overflow-hidden rounded-[22px]",
-                    isSelected ? "h-[14%] w-[70%]" : "h-[10%] w-[58%]",
+                    'pointer-events-none absolute left-1/2 top-[calc(100%+12px)] -translate-x-1/2 overflow-hidden rounded-[22px]',
+                    isSelected ? 'h-[14%] w-[70%]' : 'h-[10%] w-[58%]',
                   )}
                   initial={false}
                   animate={{
@@ -479,19 +718,19 @@ export function Jukebox() {
                   }}
                   transition={REFLECTION_SPRING}
                   style={{
-                    transformOrigin: "top center",
+                    transformOrigin: 'top center',
                     maskImage:
-                      "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)",
+                      'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)',
                     WebkitMaskImage:
-                      "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)",
+                      'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)',
                   }}
                 >
                   <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
                     <img
-                      src={project.image}
+                      src={project.posterImage}
                       alt=""
                       aria-hidden="true"
-                      className={cn("h-full w-full scale-y-[-1] select-none object-center opacity-70", project.imageFit)}
+                      className={cn('h-full w-full scale-y-[-1] select-none object-center opacity-70', project.imageFit)}
                       draggable={false}
                     />
                   </div>
@@ -520,6 +759,53 @@ export function Jukebox() {
           <ChevronRight className="h-6 w-6" />
         </button>
       </div>
+
+      <AnimatePresence>
+        {expandedProject && (
+          <motion.div
+            className="fixed inset-0 z-[120] bg-[#fdfaf2]/22 p-3 backdrop-blur-[3px] sm:p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            <motion.div
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.46),_rgba(253,250,242,0.12)_58%,_rgba(253,250,242,0.02)_100%)]"
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.32, ease: 'easeOut' }}
+            />
+            <button
+              type="button"
+              onClick={() => setExpandedProjectIndex(null)}
+              className="absolute right-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-neutral-950/78 text-white shadow-lg transition hover:bg-neutral-950 sm:right-5 sm:top-5"
+              aria-label="Close expanded project preview"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <motion.div
+              className="mx-auto h-full max-w-[1680px] pt-12 sm:pt-14"
+              initial={{ opacity: 0.92, scale: 0.986, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0.94, scale: 0.992, y: 6 }}
+              transition={WINDOW_PORTAL_SPRING}
+            >
+              <motion.div
+                layoutId={`project-window-${expandedProject.id}`}
+                className="h-full"
+                transition={WINDOW_PORTAL_SPRING}
+              >
+                <ScreenWindowFrame project={expandedProject} mode="card">
+                  {renderProjectScreen(expandedProject, expandedProjectIndex, 'card', false)}
+                </ScreenWindowFrame>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

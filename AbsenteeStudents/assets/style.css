@@ -3,12 +3,10 @@
     src: url('assets/Newsreader-Italic-VariableFont_opsz,wght.ttf') format('truetype');
 }
 
-/* Set the global font family */
 body {
     font-family: 'Newsreader', sans-serif;
 }
 
-/* Optional: Customize font for specific elements */
 h1 {
     font-family: 'Newsreader', sans-serif;
     font-size: 36px;
@@ -17,4 +15,52 @@ h1 {
 
 #data-dropdown {
     font-family: 'Newsreader', sans-serif;
+}
+
+.map-shell {
+    position: relative;
+    width: 95vw;
+    margin: 0 auto;
+}
+
+.minimize-map {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1001;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(43, 33, 24, 0.86);
+    color: #fff;
+    font-family: inherit;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.map-shell.is-fullscreen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding-top: 56px;
+    z-index: 1000;
+    background: #fff;
+}
+
+.map-shell.is-fullscreen .minimize-map {
+    display: block;
+}
+
+.map-shell.is-fullscreen #us-map {
+    width: 100% !important;
+    height: calc(100vh - 56px) !important;
+}
+
+body.dashboard-modal-open {
+    overflow: hidden;
 }

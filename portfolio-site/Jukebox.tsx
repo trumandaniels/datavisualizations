@@ -84,6 +84,24 @@ const MAX_EXAMINE_ROTATION = 8;
 const MAX_EXAMINE_SWIPE = 120;
 const EXAMINE_LIFT = 18;
 const EXAMINE_SCALE = 1.01;
+const TRACK_SPRING = {
+  type: 'spring' as const,
+  stiffness: 360,
+  damping: 28,
+  mass: 0.78,
+};
+const CARD_SPRING = {
+  type: 'spring' as const,
+  stiffness: 310,
+  damping: 24,
+  mass: 0.62,
+};
+const REFLECTION_SPRING = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 26,
+  mass: 0.74,
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -291,14 +309,10 @@ export function Jukebox() {
                   z,
                   rotateY,
                   scale,
+                  y: isSelected ? -10 : 0,
                   opacity: absOffset > 3 ? 0 : 1,
                 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 30,
-                  mass: 0.8,
-                }}
+                transition={TRACK_SPRING}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 onTap={() => {
@@ -307,10 +321,10 @@ export function Jukebox() {
               >
                 <motion.div
                   className={cn(
-                    'relative overflow-hidden rounded-[28px] bg-white/96 transition-all duration-500',
+                    'relative overflow-hidden rounded-[28px] bg-white/96 transition-all duration-300',
                     isSelected
-                      ? 'h-[min(62vw,640px)] w-[min(88vw,1040px)] shadow-[0_34px_80px_-34px_rgba(15,23,42,0.42)] ring-1 ring-neutral-900/8'
-                      : 'h-[min(44vw,440px)] w-[min(58vw,720px)] shadow-[0_24px_60px_-30px_rgba(15,23,42,0.28)] ring-1 ring-neutral-900/8',
+                      ? 'h-[min(62vw,640px)] w-[min(88vw,1040px)] shadow-[0_30px_72px_-34px_rgba(15,23,42,0.34)] ring-1 ring-neutral-900/8'
+                      : 'h-[min(44vw,440px)] w-[min(58vw,720px)] shadow-[0_20px_44px_-28px_rgba(15,23,42,0.22)] ring-1 ring-neutral-900/8',
                   )}
                   initial={false}
                   animate={{
@@ -319,12 +333,7 @@ export function Jukebox() {
                     z: examinedCard?.index === index ? examinedCard.translateZ : 0,
                     scale: examinedCard?.index === index ? examinedCard.scale : 1,
                   }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 260,
-                    damping: 24,
-                    mass: 0.6,
-                  }}
+                  transition={CARD_SPRING}
                   style={{
                     transformStyle: 'preserve-3d',
                     backfaceVisibility: 'hidden',
@@ -378,7 +387,8 @@ export function Jukebox() {
                   onPointerCancel={releaseExaminedCard}
                   onLostPointerCapture={releaseExaminedCard}
                 >
-                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/75 via-white/20 to-neutral-900/8" />
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/52 via-white/14 to-neutral-900/6" />
+                  <div className="pointer-events-none absolute inset-x-[10%] top-0 z-10 h-px bg-white/80 blur-[1px]" />
                   <div className={cn('pointer-events-none absolute inset-0 z-10 bg-gradient-to-br', project.imageTint)} />
 
                   <div className="absolute inset-[16px] overflow-hidden rounded-[22px] bg-[#f6f1e8] ring-1 ring-neutral-900/6">
@@ -417,10 +427,10 @@ export function Jukebox() {
                   <AnimatePresence>
                     {isSelected && (
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 14 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                        transition={{ delay: 0.2, duration: 0.4 }}
+                        exit={{ opacity: 0, transition: { duration: 0.08 } }}
+                        transition={{ delay: 0.08, duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
                         className="absolute inset-x-0 bottom-0 z-20 flex h-[48%] flex-col justify-end bg-gradient-to-t from-[#09101d]/92 via-[#09101d]/48 to-transparent p-8 text-white"
                       >
                         <div className="mb-3 flex items-center gap-2">
@@ -453,6 +463,40 @@ export function Jukebox() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </motion.div>
+
+                <motion.div
+                  className={cn(
+                    "pointer-events-none absolute left-1/2 top-[calc(100%+12px)] -translate-x-1/2 overflow-hidden rounded-[22px]",
+                    isSelected ? "h-[14%] w-[70%]" : "h-[10%] w-[58%]",
+                  )}
+                  initial={false}
+                  animate={{
+                    opacity: isSelected ? 0.16 : isHovered ? 0.05 : 0.025,
+                    y: isSelected ? 2 : 6,
+                    scaleY: isSelected ? 0.92 : 0.82,
+                    scaleX: isSelected ? 0.98 : 0.9,
+                  }}
+                  transition={REFLECTION_SPRING}
+                  style={{
+                    transformOrigin: "top center",
+                    maskImage:
+                      "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 28%, transparent 76%)",
+                  }}
+                >
+                  <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
+                    <img
+                      src={project.image}
+                      alt=""
+                      aria-hidden="true"
+                      className={cn("h-full w-full scale-y-[-1] select-none object-center opacity-70", project.imageFit)}
+                      draggable={false}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/22 via-[#f7f4ee]/44 to-[#fdfcfb]/98" />
+                  <div className="absolute inset-0 backdrop-blur-[3px]" />
                 </motion.div>
               </motion.div>
             );

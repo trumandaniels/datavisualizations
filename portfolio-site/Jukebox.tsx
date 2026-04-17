@@ -229,13 +229,13 @@ function ScreenWindowFrame({
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col overflow-hidden bg-white/98 ring-1 ring-neutral-900/8',
+        'flex h-full min-h-0 flex-col overflow-hidden border border-white/55 bg-white/56 ring-1 ring-white/55 backdrop-blur-[38px] supports-[backdrop-filter]:bg-white/34',
         mode === 'fullscreen'
           ? 'rounded-[2rem] shadow-[0_32px_110px_-52px_rgba(15,23,42,0.38)]'
           : 'rounded-[1.65rem] shadow-[0_24px_72px_-40px_rgba(15,23,42,0.28)]',
       )}
     >
-      <div className="flex items-center gap-3 border-b border-neutral-900/8 bg-[#fcfaf6]/95 px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-neutral-900/8 bg-[#fcfaf6]/60 px-4 py-3 backdrop-blur-[32px] supports-[backdrop-filter]:bg-[#fcfaf6]/38">
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff8679]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#f6c152]" />
@@ -244,11 +244,8 @@ function ScreenWindowFrame({
         <span className="rounded-full border border-neutral-900/8 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">
           {project.statusLabel}
         </span>
-        <span className="min-w-0 flex-1 truncate rounded-full border border-neutral-900/8 bg-white/90 px-4 py-1.5 text-xs text-neutral-500">
-          {project.locationLabel}
-        </span>
       </div>
-      <div className="min-h-0 flex-1 bg-[linear-gradient(180deg,#fdfaf4_0%,#f7f2e8_100%)] p-3 sm:p-4">{children}</div>
+      <div className="min-h-0 flex-1 bg-[#f7f2e8] p-3 sm:p-4">{children}</div>
     </div>
   );
 }
@@ -600,7 +597,7 @@ export function Jukebox() {
               >
                 <motion.div
                   className={cn(
-                    'relative overflow-hidden rounded-[28px] bg-white/96 transition-all duration-300',
+                    'relative overflow-hidden rounded-[28px] border border-white/55 bg-white/46 backdrop-blur-[42px] supports-[backdrop-filter]:bg-white/26 transition-all duration-300',
                     isSelected
                       ? 'h-[min(66vw,720px)] w-[min(92vw,1160px)] shadow-[0_30px_72px_-34px_rgba(15,23,42,0.34)] ring-1 ring-neutral-900/8'
                       : 'h-[min(48vw,520px)] w-[min(66vw,820px)] shadow-[0_20px_44px_-28px_rgba(15,23,42,0.22)] ring-1 ring-neutral-900/8',
@@ -666,7 +663,7 @@ export function Jukebox() {
                   onPointerCancel={releaseExaminedCard}
                   onLostPointerCapture={releaseExaminedCard}
                 >
-                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/44 via-white/8 to-neutral-900/4" />
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/72 via-white/30 to-neutral-900/12" />
                   <div className="pointer-events-none absolute inset-x-[10%] top-0 z-10 h-px bg-white/80 blur-[1px]" />
                   <div className={cn('pointer-events-none absolute inset-0 z-10 bg-gradient-to-br', project.imageTint)} />
 
@@ -687,14 +684,26 @@ export function Jukebox() {
                     </motion.div>
                   </div>
 
-                  <div className="absolute left-7 top-7 z-20 inline-flex items-center gap-2 rounded-full border border-white/65 bg-white/84 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-700 shadow-sm backdrop-blur-sm">
+                  <div className="absolute left-7 top-7 z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/58 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-700 shadow-[0_18px_34px_-20px_rgba(15,23,42,0.5)] backdrop-blur-[26px] supports-[backdrop-filter]:bg-white/34">
                     {isSelected ? 'Double Click to Expand' : 'Mini Project Screen'}
                   </div>
+
+                  {isSelected && (
+                    <div
+                      className={cn(
+                        'pointer-events-none absolute left-7 right-7 bottom-7 z-20 rounded-[1.2rem] border border-white bg-white px-5 py-4 text-neutral-900 shadow-[0_24px_48px_-26px_rgba(15,23,42,0.32)] transition-opacity duration-300',
+                        isHovered ? 'opacity-100' : 'opacity-0',
+                      )}
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500">{project.eyebrow}</p>
+                      <h4 className="mt-1 text-[clamp(1.5rem,2.1vw,2.25rem)] font-semibold tracking-[-0.03em] text-neutral-950">{project.title}</h4>
+                    </div>
+                  )}
 
                   {!isSelected && (
                     <div
                       className={cn(
-                        'pointer-events-none absolute inset-x-5 bottom-5 z-20 rounded-[1.2rem] border border-white/50 bg-white/86 px-4 py-3 text-neutral-900 shadow-lg backdrop-blur-sm transition-opacity duration-300',
+                        'pointer-events-none absolute inset-x-5 bottom-5 z-20 rounded-[1.2rem] border border-white bg-white px-4 py-3 text-neutral-900 shadow-[0_24px_48px_-26px_rgba(15,23,42,0.32)] transition-opacity duration-300',
                         isHovered ? 'opacity-100' : 'opacity-0',
                       )}
                     >
@@ -786,7 +795,7 @@ export function Jukebox() {
             </button>
 
             <motion.div
-              className="mx-auto h-full max-w-[1680px] pt-12 sm:pt-14"
+              className="h-full w-full"
               initial={{ opacity: 0.92, scale: 0.986, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0.94, scale: 0.992, y: 6 }}
@@ -794,12 +803,10 @@ export function Jukebox() {
             >
               <motion.div
                 layoutId={`project-window-${expandedProject.id}`}
-                className="h-full"
+                className="h-full w-full p-4 sm:p-6"
                 transition={WINDOW_PORTAL_SPRING}
               >
-                <ScreenWindowFrame project={expandedProject} mode="card">
-                  {renderProjectScreen(expandedProject, expandedProjectIndex, 'card', false)}
-                </ScreenWindowFrame>
+                {renderProjectScreen(expandedProject, expandedProjectIndex, 'fullscreen', false)}
               </motion.div>
             </motion.div>
           </motion.div>

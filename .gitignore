@@ -42,3 +42,5 @@ coverage/
 .idea/
 .DS_Store
 .ipynb_checkpoints/
+
+.codex
